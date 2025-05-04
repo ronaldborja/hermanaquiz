@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Programación</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .quiz-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .question h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 8px;
+        }
+        label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        #results {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .feedback {
+            font-weight: bold;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .correct {
+            color: #27ae60;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz de Programación</h1>
+    <div class="progress-container">
+        <div class="progress-bar" id="progress">0%</div>
+    </div>
+    
+    <div class="quiz-container">
+        <div id="quiz"></div>
+        <button class="btn" id="submit">Calificar Quiz</button>
+        <button class="btn hidden" id="restart">Reiniciar Quiz</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const quizData = [
+            {
+                question: "¿Qué es una constante?",
+                type: "radio",
+                options: [
+                    "Una variable cuyo valor puede cambiar durante la ejecución",
+                    "Una variable con un valor fijo que no cambia durante la ejecución del programa",
+                    "Un identificador para funciones",
+                    "Una palabra reservada del lenguaje"
+                ],
+                correctAnswer: 1,
+                explanation: "Una constante es una variable con un valor fijo que no cambia durante la ejecución del programa. En C++ se declara con 'const tipoVar nombre = valor;'."
+            },
+            {
+                question: "¿Qué son los identificadores?",
+                type: "radio",
+                options: [
+                    "Palabras reservadas del lenguaje",
+                    "Operadores aritméticos",
+                    "Nombres dados a variables o funciones",
+                    "Comentarios en el código"
+                ],
+                correctAnswer: 2,
+                explanation: "Los identificadores son nombres dados a variables o funciones. Suelen escribirse en camelCase."
+            },
+            {
+                question: "Selecciona ejemplos de palabras reservadas:",
+                type: "checkbox",
+                options: [
+                    "if",
+                    "else",
+                    "miVariable",
+                    "while",
+                    "nombreFuncion",
+                    "double"
+                ],
+                correctAnswer: [0, 1, 3, 5],
+                explanation: "Las palabras reservadas son términos específicos del lenguaje como 'if', 'else', 'while', 'int', 'float', 'double', etc."
+            },
+            {
+                question: "¿Qué son los comentarios en programación?",
+                type: "radio",
+                options: [
+                    "Código ejecutable importante",
+                    "Líneas que coloca el programador para explicar el código y que no se ejecutan",
+                    "Errores en el código",
+                    "Variables sin valor asignado"
+                ],
+                correctAnswer: 1,
+                explanation: "Los comentarios son líneas que coloca el programador para explicar el código. No se ejecutan. En muchos lenguajes se representan con // para comentarios de una línea."
+            },
+            {
+                question: "Selecciona los operadores aritméticos:",
+                type: "checkbox",
+                options: [
+                    "+",
+                    "<",
+                    "*",
+                    ">=",
+                    "%",
+                    "--"
+                ],
+                correctAnswer: [0, 2, 4, 5],
+                explanation: "Los operadores aritméticos incluyen: +, -, *, /, %, ++, --. Los operadores como <, >, >=, <= son operadores lógicos o de comparación."
+            },
+            {
+                question: "¿Qué define la directiva #include?",
+                type: "radio",
+                options: [
+                    "Una variable",
+                    "Un comentario",
+                    "Una constante",
+                    "Librerías que contienen las funciones usadas en el programa"
+                ],
+                correctAnswer: 3,
+                explanation: "#include define librerías que contienen las funciones que serán usadas en el programa."
+            },
+            {
+                question: "¿Qué es un lenguaje de programación?",
+                type: "radio",
+                options: [
+                    "Un sistema operativo",
+                    "Un conjunto de elementos para poder intercambiar información con el computador",
+                    "Un tipo de hardware",
+                    "Un editor de texto"
+                ],
+                correctAnswer: 1,
+                explanation: "Un lenguaje de programación es un conjunto de elementos que permiten intercambiar información con el computador."
+            },
+            {
+                question: "Selecciona los indicadores de formato correctos:",
+                type: "checkbox",
+                options: [
+                    "%c se usa para caracteres",
+                    "%d se usa para enteros",
+                    "%f se usa para decimales (Float)",
+                    "%s se usa para cadenas de texto (String)",
+                    "%x se usa para hexadecimales",
+                    "%p se usa para punteros"
+                ],
+                correctAnswer: [0, 1, 2, 3],
+                explanation: "%c es para caracteres, %d o %i para enteros, %f para decimales (float), y %s para cadenas de texto (string)."
+            },
+            {
+                question: "¿Cuál es la sintaxis correcta para la instrucción cout?",
+                type: "radio",
+                options: [
+                    "cout &gt;&gt; variable;",
+                    "cout &lt;&lt; variable;",
+                    "cout :: variable;",
+                    "cout = variable;"
+                ],
+                correctAnswer: 1,
+                explanation: "La sintaxis correcta para cout es: cout &lt;&lt; variable;"
+            },
+            {
+                question: "¿Cuál es la sintaxis correcta para la instrucción cin?",
+                type: "radio",
+                options: [
+                    "cin &lt;&lt; variable;",
+                    "cin &gt;&gt; variable;",
+                    "cin :: variable;",
+                    "cin = variable;"
+                ],
+                correctAnswer: 1,
+                explanation: "La sintaxis correcta para cin es: cin &gt;&gt; variable;"
+            },
+            {
+                question: "¿Qué es una variable?",
+                type: "radio",
+                options: [
+                    "Donde se almacenan los datos de un programa en un espacio de memoria",
+                    "Una constante que no cambia",
+                    "Una palabra reservada del lenguaje",
+                    "Un comentario explicativo"
+                ],
+                correctAnswer: 0,
+                explanation: "Una variable es donde se almacenan los datos de un programa. Se guardan en un espacio de memoria."
+            },
+            {
+                question: "¿Cómo definir una constante en C++?",
+                type: "radio",
+                options: [
+                    "var tipoConst = valor;",
+                    "const valor = tipoVar;",
+                    "const tipoVar var = valor;",
+                    "define var = valor;"
+                ],
+                correctAnswer: 2,
+                explanation: "Para definir una constante en C++ se usa: const tipoVar var = valor;"
+            },
+            {
+                question: "Selecciona los tipos de datos en C++:",
+                type: "checkbox",
+                options: [
+                    "float",
+                    "string",
+                    "character",
+                    "integer",
+                    "double",
+                    "boolean"
+                ],
+                correctAnswer: [0, 1, 2, 3, 4, 5],
+                explanation: "Los tipos de datos en C++ incluyen: float, string, char, int, double, boolean, entre otros."
+            },
+            {
+                question: "¿Cuándo se invalida un nombre de variable?",
+                type: "checkbox",
+                options: [
+                    "Si usa palabras reservadas como int, float",
+                    "Si comienza con un número",
+                    "Si tiene espacios en blanco",
+                    "Si tiene caracteres especiales como @, #, $",
+                    "Si usa camelCase"
+                ],
+                correctAnswer: [0, 1, 2, 3],
+                explanation: "Un nombre de variable se invalida si: usa palabras reservadas, comienza con un número, tiene espacios en blanco, o contiene caracteres especiales como @, #, $."
+            },
+            {
+                question: "¿Qué incrementa el operador x++?",
+                type: "radio",
+                options: [
+                    "Incrementa x en 2",
+                    "Incrementa x en 1",
+                    "Duplica el valor de x",
+                    "No modifica x"
+                ],
+                correctAnswer: 1,
+                explanation: "El operador x++ incrementa el valor de x en 1."
+            },
+            {
+                question: "¿Qué hace la función sqrt()?",
+                type: "radio",
+                options: [
+                    "Calcula el cuadrado de un número",
+                    "Calcula la raíz cuadrada de un número",
+                    "Calcula la potencia de un número",
+                    "Calcula el valor absoluto de un número"
+                ],
+                correctAnswer: 1,
+                explanation: "La función sqrt() calcula la raíz cuadrada de un número. Por ejemplo, sqrt(16) = 4."
+            },
+            {
+                question: "¿Qué hace la función pow(x, y)?",
+                type: "radio",
+                options: [
+                    "Calcula la raíz y-ésima de x",
+                    "Calcula x elevado a la potencia y",
+                    "Calcula el logaritmo de x en base y",
+                    "Calcula el residuo de dividir x entre y"
+                ],
+                correctAnswer: 1,
+                explanation: "La función pow(x, y) calcula x elevado a la potencia y. Por ejemplo, pow(2, 3) = 8."
+            },
+            {
+                question: "¿Qué librería se necesita para usar cin y cout?",
+                type: "radio",
+                options: [
+                    "#include stdio.h;",
+                    "#include stdlib.h;",
+                    "#include iostream",
+                    "#include cmath"
+                ],
+                correctAnswer: 2,
+                explanation: "Para usar cin y cout se necesita la librería #include &lt;iostream&gt;."
+            },
+            {
+                question: "¿Qué librería se necesita para usar scanf?",
+                type: "radio",
+                options: [
+                    "#include stdio.h;",
+                    "#include stdlib.h;",
+                    "#include iostream;",
+                    "#include cmath;"
+                ],
+                correctAnswer: 0,
+                explanation: "Para usar scanf se necesita la librería #include &lt;stdio.h&gt;."
+            },
+            {
+                question: "¿Qué librería se necesita para usar las funciones sqrt y pow?",
+                type: "radio",
+                options: [
+                    "#include stdio.h",
+                    "#include stdlib.h",
+                    "#include iostream",
+                    "#include cmath;"
+                ],
+                correctAnswer: 3,
+                explanation: "Para usar las funciones sqrt y pow se necesita la librería #include &lt;cmath&gt;."
+            }
+        ];
+
+        let currentQuestion = 0;
+        const quiz = document.getElementById('quiz');
+        const submitBtn = document.getElementById('submit');
+        const restartBtn = document.getElementById('restart');
+        const resultsContainer = document.getElementById('results');
+        const progressBar = document.getElementById('progress');
+
+        function loadQuestion() {
+            const currentQuizData = quizData[currentQuestion];
+            
+            let questionHTML = `
+                <div class="question" id="question-${currentQuestion}">
+                    <h3>${currentQuestion + 1}. ${currentQuizData.question}</h3>
+            `;
+            
+            if (currentQuizData.type === "radio") {
+                questionHTML += `<ul class="options">`;
+                currentQuizData.options.forEach((option, index) => {
+                    questionHTML += `
+                        <li>
+                            <label>
+                                <input type="radio" name="question${currentQuestion}" value="${index}">
+                                ${option}
+                            </label>
+                        </li>
+                    `;
+                });
+                questionHTML += `</ul>`;
+            } else if (currentQuizData.type === "checkbox") {
+                questionHTML += `<ul class="options">`;
+                currentQuizData.options.forEach((option, index) => {
+                    questionHTML += `
+                        <li>
+                            <label>
+                                <input type="checkbox" name="question${currentQuestion}" value="${index}">
+                                ${option}
+                            </label>
+                        </li>
+                    `;
+                });
+                questionHTML += `</ul>`;
+            } else if (currentQuizData.type === "matching") {
+                questionHTML += `<ul class="options">`;
+                currentQuizData.options.forEach((pair, index) => {
+                    questionHTML += `
+                        <li>
+                            <label>
+                                <input type="checkbox" name="question${currentQuestion}" value="${index}">
+                                <strong>${pair[0]}</strong> - ${pair[1]}
+                            </label>
+                        </li>
+                    `;
+                });
+                questionHTML += `</ul>`;
+            }
+            
+            questionHTML += `<div class="explanation" id="explanation-${currentQuestion}">${currentQuizData.explanation}</div>`;
+            questionHTML += `</div>`;
+            
+            quiz.innerHTML = questionHTML;
+        }
+
+        function loadAllQuestions() {
+            let allQuestionsHTML = '';
+            
+            quizData.forEach((quizData, questionIndex) => {
+                allQuestionsHTML += `
+                    <div class="question" id="question-${questionIndex}">
+                        <h3>${questionIndex + 1}. ${quizData.question}</h3>
+                `;
+                
+                if (quizData.type === "radio") {
+                    allQuestionsHTML += `<ul class="options">`;
+                    quizData.options.forEach((option, index) => {
+                        allQuestionsHTML += `
+                            <li>
+                                <label>
+                                    <input type="radio" name="question${questionIndex}" value="${index}">
+                                    ${option}
+                                </label>
+                            </li>
+                        `;
+                    });
+                    allQuestionsHTML += `</ul>`;
+                } else if (quizData.type === "checkbox") {
+                    allQuestionsHTML += `<ul class="options">`;
+                    quizData.options.forEach((option, index) => {
+                        allQuestionsHTML += `
+                            <li>
+                                <label>
+                                    <input type="checkbox" name="question${questionIndex}" value="${index}">
+                                    ${option}
+                                </label>
+                            </li>
+                        `;
+                    });
+                    allQuestionsHTML += `</ul>`;
+                } else if (quizData.type === "matching") {
+                    allQuestionsHTML += `<ul class="options">`;
+                    quizData.options.forEach((pair, index) => {
+                        allQuestionsHTML += `
+                            <li>
+                                <label>
+                                    <strong>${pair[0]}</strong> - ${pair[1]}
+                                </label>
+                            </li>
+                        `;
+                    });
+                    allQuestionsHTML += `</ul>`;
+                }
+                
+                allQuestionsHTML += `<div class="explanation" id="explanation-${questionIndex}">${quizData.explanation}</div>`;
+                allQuestionsHTML += `</div>`;
+            });
+            
+            quiz.innerHTML = allQuestionsHTML;
+        }
+
+        function getSelected(questionIndex) {
+            if (quizData[questionIndex].type === "radio") {
+                const answerElements = document.querySelectorAll(`input[name="question${questionIndex}"]`);
+                let answer = undefined;
+                
+                answerElements.forEach((answerElement) => {
+                    if (answerElement.checked) {
+                        answer = parseInt(answerElement.value);
+                    }
+                });
+                
+                return answer;
+            } else if (quizData[questionIndex].type === "checkbox") {
+                const answerElements = document.querySelectorAll(`input[name="question${questionIndex}"]`);
+                let answers = [];
+                
+                answerElements.forEach((answerElement, index) => {
+                    if (answerElement.checked) {
+                        answers.push(parseInt(answerElement.value));
+                    }
+                });
+                
+                return answers;
+            } else if (quizData[questionIndex].type === "matching") {
+                const answerElements = document.querySelectorAll(`input[name="question${questionIndex}"]`);
+                let answers = [];
+                
+                answerElements.forEach((answerElement, index) => {
+                    if (answerElement.checked) {
+                        answers.push(parseInt(answerElement.value));
+                    }
+                });
+                
+                return answers;
+            }
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            let correctAnswers = 0;
+            
+            quizData.forEach((question, index) => {
+                const userAnswer = getSelected(index);
+                const explanationElement = document.getElementById(`explanation-${index}`);
+                explanationElement.style.display = "block";
+                
+                if (question.type === "radio") {
+                    if (userAnswer === question.correctAnswer) {
+                        correctAnswers++;
+                    }
+                } else if (question.type === "checkbox") {
+                    // Compare arrays
+                    const isCorrect = 
+                        userAnswer.length === question.correctAnswer.length && 
+                        userAnswer.every(value => question.correctAnswer.includes(value));
+                    
+                    if (isCorrect) {
+                        correctAnswers++;
+                    }
+                } else if (question.type === "matching") {
+                    // Compare arrays
+                    const isCorrect = 
+                        userAnswer.length === question.correctAnswer.length && 
+                        userAnswer.every(value => question.correctAnswer.includes(value));
+                    
+                    if (isCorrect) {
+                        correctAnswers++;
+                    }
+                }
+            });
+            
+            score = (correctAnswers / quizData.length) * 5.0;
+            return {
+                score: score.toFixed(1),
+                correctAnswers,
+                total: quizData.length
+            };
+        }
+
+        submitBtn.addEventListener('click', () => {
+            const results = checkAnswers();
+            
+            let feedback = "";
+            if (results.score >= 4.5) {
+                feedback = "¡Excelente! Dominas los conceptos.";
+            } else if (results.score >= 3.5) {
+                feedback = "¡Muy bien! Tienes un buen entendimiento.";
+            } else if (results.score >= 3.0) {
+                feedback = "¡Bien! Has aprobado, pero puedes mejorar.";
+            } else {
+                feedback = "Necesitas estudiar un poco más. ¡No te rindas!";
+            }
+            
+            resultsContainer.innerHTML = `
+                <div class="feedback">${feedback}</div>
+                <p>Calificación: <strong>${results.score}/5.0</strong></p>
+                <p>Respuestas correctas: ${results.correctAnswers} de ${results.total}</p>
+                <p>Revisa las explicaciones para cada pregunta.</p>
+            `;
+            
+            resultsContainer.style.display = 'block';
+            submitBtn.classList.add('hidden');
+            restartBtn.classList.remove('hidden');
+            
+            // Scroll to results
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        restartBtn.addEventListener('click', () => {
+            // Reset all selections
+            document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Hide explanations
+            document.querySelectorAll('.explanation').forEach(explanation => {
+                explanation.style.display = 'none';
+            });
+            
+            // Hide results
+            resultsContainer.style.display = 'none';
+            
+            // Show submit button, hide restart
+            submitBtn.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        loadAllQuestions();
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+    </script>
+</body>
+</html>
